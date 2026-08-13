@@ -50,4 +50,11 @@ export function Edit(p) {
   return (<svg {...base} {...p}><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>);
 }
 
+export function Hash(p) {
+  return (<svg {...base} {...p}><path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18" /></svg>);
+}
+export function Filter(p) {
+  return (<svg {...base} {...p}><path d="M3 4h18l-7 8v6l-4 2v-8L3 4Z" /></svg>);
+}
+
 export const ICONES = { truck: Truck, boat: Boat, tool: Tool, drop: Drop };
