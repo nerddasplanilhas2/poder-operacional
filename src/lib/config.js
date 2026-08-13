@@ -35,3 +35,11 @@ export const GRUPO_EQUIP_SOMA = ['DESENCARCERADOR','SERRA SABRE','MOTOSSERRA','M
 
 export const rotuloPorCol = Object.fromEntries(CAMPOS.map(c => [c.col, c.rotulo]));
 export const colPorRotulo = Object.fromEntries(CAMPOS.map(c => [c.rotulo, c.col]));
+
+// Agrupamento dos campos por categoria (usado no formulario e no resumo do painel).
+export const CATEGORIAS = [
+  { nome: 'Viaturas',     icone: 'truck', campos: ['ABT', 'AT', 'ABTF', 'AR', 'USB', 'USA', 'AEM', 'VTR DE APOIO'] },
+  { nome: 'Embarcações',  icone: 'boat',  campos: ['EMBARCAÇÕES'] },
+  { nome: 'Equipamentos', icone: 'tool',  campos: ['EPRAs DISPONIVEIS', 'DESENCARCERADOR', 'SERRA SABRE', 'MOTOSSERRA', 'MOTOPODA', 'MICRO RETÍFICA', 'COMPRESSOR'] },
+  { nome: 'Recursos',     icone: 'drop',  campos: ['PRODUTOS PERIGOSOS', 'LITROS ÁGUA'] },
+];

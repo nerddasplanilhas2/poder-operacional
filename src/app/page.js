@@ -1,14 +1,15 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import Topbar, { LockIcon } from './components/Topbar';
-import { GBMS, CAMPOS } from '../lib/config';
+import Topbar from './components/Topbar';
+import { Lock, Save, Edit, ICONES } from './components/Icons';
+import { GBMS, CATEGORIAS } from '../lib/config';
 
 export default function FormPage() {
   const [nome, setNome] = useState('');
   const [gbm, setGbm] = useState('');
   const [valores, setValores] = useState({});
-  const [msg, setMsg] = useState(null); // { tipo, texto }
+  const [msg, setMsg] = useState(null);
   const [carregando, setCarregando] = useState(false);
 
   async function selecionarGbm(g) {
@@ -47,16 +48,16 @@ export default function FormPage() {
     }
   }
 
+  const preenchidos = Object.values(valores).filter((v) => String(v).trim() !== '').length;
+
   return (
     <>
-      <Topbar right={
-        <Link className="btn btn-login" href="/login"><LockIcon /> Entrar</Link>
-      } />
+      <Topbar right={<Link className="btn btn-outline-light" href="/login"><Lock /> Entrar</Link>} />
 
       <div className="wrap">
         <div className="card">
           <div className="card-head">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>
+            <div className="ic"><Edit /></div>
             <h2>Preenchimento de Dados Operacionais</h2>
           </div>
           <p className="sub">Identifique-se, selecione seu GBM e informe os recursos e equipamentos disponíveis.</p>
@@ -78,30 +79,42 @@ export default function FormPage() {
 
           {gbm && (
             <>
-              <div className="section-label">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3v4a2 2 0 0 0 2 2h4" /><path d="M5 3h9l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M9 13h6M9 17h6" /></svg>
-                Recursos e Equipamentos
-              </div>
-              <p className="sub" style={{ margin: '6px 0 0' }}>Deixe em branco quando não houver o item — não utilize "0" nem "-".</p>
-              <div className="grid">
-                {CAMPOS.map((c) => (
-                  <div key={c.col}>
-                    <label>{c.rotulo}</label>
-                    <input type="text" autoComplete="off"
-                           value={valores[c.rotulo] || ''}
-                           onChange={(e) => setCampo(c.rotulo, e.target.value)} />
+              <p className="sub" style={{ margin: '20px 0 0' }}>
+                Deixe em branco quando não houver o item — não utilize "0" nem "-".
+                {preenchidos > 0 && <b style={{ color: 'var(--navy)' }}> {' '}({preenchidos} preenchidos)</b>}
+              </p>
+
+              {CATEGORIAS.map((cat) => {
+                const Ic = ICONES[cat.icone];
+                const feitos = cat.campos.filter((c) => String(valores[c] || '').trim() !== '').length;
+                return (
+                  <div className="grupo" key={cat.nome}>
+                    <div className="grupo-head">
+                      <div className="gic">{Ic ? <Ic /> : null}</div>
+                      <h3>{cat.nome}</h3>
+                      <span className="cont">{feitos}/{cat.campos.length}</span>
+                    </div>
+                    <div className="grupo-body">
+                      {cat.campos.map((rotulo) => (
+                        <div key={rotulo}>
+                          <label>{rotulo}</label>
+                          <input type="text" autoComplete="off"
+                                 value={valores[rotulo] || ''}
+                                 onChange={(e) => setCampo(rotulo, e.target.value)} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </>
           )}
 
           {msg && <div className={'msg ' + msg.tipo}>{msg.texto}</div>}
 
           <div className="actions">
-            <button className="btn btn-primary" onClick={enviar} disabled={carregando}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8M7 3v5h8" /></svg>
-              {carregando ? 'Salvando...' : 'Salvar'}
+            <button className="btn btn-gold" onClick={enviar} disabled={carregando}>
+              <Save /> {carregando ? 'Salvando...' : 'Salvar'}
             </button>
           </div>
         </div>
