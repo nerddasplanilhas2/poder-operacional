@@ -11,6 +11,7 @@ import {
 import {
   GBMS, CAMPOS, CATEGORIAS, GRUPO_VIATURAS, GRUPO_EQUIP, GRUPO_EQUIP_SOMA,
 } from '../../lib/config';
+import { fmtDataBR } from '../../lib/tempo';
 
 ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -48,26 +49,28 @@ export default function DashboardPage() {
   const [unidadeSel, setUnidadeSel] = useState(''); // filtro global
   const [busca, setBusca] = useState('');
   const [ordenar, setOrdenar] = useState({ col: null, dir: 1 });
+  const [dataSel, setDataSel] = useState('');
+  const [hoje, setHoje] = useState('');
 
-  useEffect(() => {
-    let ativo = true;
-    (async () => {
-      try {
-        const r = await fetch('/api/dados');
-        if (r.status === 401) { router.replace('/login'); return; }
-        const j = await r.json();
-        if (!ativo) return;
-        if (!j.ok) { setEstado('negado'); return; }
-        setPerfil(j.perfil || '');
-        setEmail(j.email || '');
-        setLinhas(j.linhas || []);
-        setEstado('ok');
-      } catch {
-        if (ativo) setEstado('negado');
-      }
-    })();
-    return () => { ativo = false; };
-  }, [router]);
+  async function carregar(data) {
+    try {
+      const url = '/api/dados' + (data ? ('?data=' + encodeURIComponent(data)) : '');
+      const r = await fetch(url);
+      if (r.status === 401) { router.replace('/login'); return; }
+      const j = await r.json();
+      if (!j.ok) { setEstado('negado'); return; }
+      setPerfil(j.perfil || '');
+      setEmail(j.email || '');
+      setLinhas(j.linhas || []);
+      setDataSel(j.data || '');
+      setHoje(j.hoje || j.data || '');
+      setEstado('ok');
+    } catch {
+      setEstado('negado');
+    }
+  }
+
+  useEffect(() => { carregar(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   async function sair() {
     await fetch('/api/logout', { method: 'POST' });
@@ -204,9 +207,15 @@ export default function DashboardPage() {
         <div className="content-head">
           <div>
             <h2>{titulos[aba].t}</h2>
-            <p className="desc">{titulos[aba].d}</p>
+            <p className="desc">{titulos[aba].d} {dataSel && (dataSel === hoje ? '· hoje' : '· ' + fmtDataBR(dataSel))}</p>
           </div>
           <div className="head-actions">
+            <div className="unit-pick">
+              <label htmlFor="data">Dia</label>
+              <input id="data" type="date" value={dataSel} max={hoje}
+                     onChange={(e) => carregar(e.target.value)}
+                     style={{ border: 'none', boxShadow: 'none', padding: '2px 4px', fontWeight: 600, color: 'var(--navy)', minWidth: 130 }} />
+            </div>
             <div className="unit-pick">
               <Filter />
               <label htmlFor="uni">Unidade</label>
@@ -216,7 +225,7 @@ export default function DashboardPage() {
               </select>
             </div>
             <span className="pill">{perfil}</span>
-            <button className="btn btn-ghost" onClick={() => location.reload()}><Refresh /> Atualizar</button>
+            <button className="btn btn-ghost" onClick={() => carregar(dataSel)}><Refresh /> Atualizar</button>
           </div>
         </div>
 

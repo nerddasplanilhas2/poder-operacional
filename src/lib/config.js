@@ -1,6 +1,11 @@
 // Configuracao compartilhada: lista de GBMs e campos do formulario.
 // "col" e o nome da coluna no banco (Supabase); "rotulo" e o texto exibido.
 
+// Janela de preenchimento diária (horário de Brasília).
+export const TIMEZONE = 'America/Sao_Paulo';
+export const ABRE_HORA = 0;    // abre à meia-noite (00:00)
+export const FECHA_HORA = 10;  // fecha às 10:00 (bloqueia a partir das 10h)
+
 export const GBMS = [
   '1º GBM', '2º GBM', '3º GBM/GAPH', '4º GBM/GMAF', '5º GBM',
   '6º GBM', '7º GBM', '8º GBM', '9º GBM/GPCIF', '10º GBM/MCPB',

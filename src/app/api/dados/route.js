@@ -1,20 +1,24 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { redis, CHAVE } from '../../../lib/redis';
+import { redis, chaveDia } from '../../../lib/redis';
 import { verificarToken, COOKIE } from '../../../lib/auth';
 import { GBMS, CAMPOS } from '../../../lib/config';
+import { agoraBR } from '../../../lib/tempo';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/dados  -> exige sessao valida; devolve todos os registros
-export async function GET() {
+// GET /api/dados?data=YYYY-MM-DD  -> exige sessao; devolve os registros do dia
+export async function GET(request) {
   const token = cookies().get(COOKIE)?.value;
   const sessao = await verificarToken(token);
   if (!sessao) {
     return NextResponse.json({ ok: false, msg: 'Não autorizado.' }, { status: 401 });
   }
 
-  const mapa = (await redis.hgetall(CHAVE)) || {};
+  const { searchParams } = new URL(request.url);
+  const data = searchParams.get('data') || agoraBR().data;
+
+  const mapa = (await redis.hgetall(chaveDia(data))) || {};
   const linhas = GBMS.map((gbm) => {
     const r = mapa[gbm] || {};
     const valores = {};
@@ -27,5 +31,5 @@ export async function GET() {
     };
   });
 
-  return NextResponse.json({ ok: true, perfil: sessao.perfil, email: sessao.email, linhas });
+  return NextResponse.json({ ok: true, perfil: sessao.perfil, email: sessao.email, data, hoje: agoraBR().data, linhas });
 }

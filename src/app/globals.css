@@ -84,6 +84,15 @@ input:focus,select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 
 
 .loader{text-align:center;color:var(--muted);padding:40px;font-size:14px;}
 
+/* aviso da janela diária */
+.aviso{display:flex;align-items:center;gap:10px;padding:13px 16px;border-radius:var(--r-sm);font-size:14px;font-weight:600;margin-bottom:16px;}
+.aviso.aberto{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd);}
+.aviso.fechado{background:var(--err-bg);color:var(--err);border:1px solid var(--err-bd);}
+.aviso .dot2{width:9px;height:9px;border-radius:50%;background:currentColor;flex:0 0 9px;}
+.fechado-card{text-align:center;padding:20px;}
+.fechado-card .big-ic{width:60px;height:60px;margin:0 auto 12px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--err-bg);color:var(--err);}
+.fechado-card .big-ic svg{width:32px;height:32px;}
+
 /* ============ App shell (dashboard) ============ */
 .shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
 .sidebar{background:linear-gradient(180deg,var(--navy-2),var(--navy-3));color:#E6EDF5;
