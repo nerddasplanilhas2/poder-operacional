@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
 import { verificarToken, COOKIE } from './lib/auth';
 
-// Protege as paginas do painel: sem sessao valida, redireciona ao login.
+// Protege o formulário (/) e o painel (/dashboard): sem sessão, vai ao login.
 export async function middleware(request) {
-  const token = request.cookies.get(COOKIE)?.value;
-  const sessao = await verificarToken(token);
+  const sessao = await verificarToken(request.cookies.get(COOKIE)?.value);
   if (!sessao) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -14,5 +13,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/', '/dashboard/:path*'],
 };

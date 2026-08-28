@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { validarLogin, criarToken, COOKIE } from '../../../lib/auth';
+import { criarToken, COOKIE } from '../../../lib/auth';
+import { validarUsuario } from '../../../lib/usuarios';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,19 +10,19 @@ export async function POST(request) {
   try { body = await request.json(); } catch { return NextResponse.json({ ok: false, msg: 'Corpo inválido.' }, { status: 400 }); }
 
   const { email, senha } = body || {};
-  const usuario = validarLogin(email, senha);
+  const usuario = await validarUsuario(email, senha);
   if (!usuario) {
     return NextResponse.json({ ok: false, msg: 'E-mail ou senha inválidos.' }, { status: 401 });
   }
 
-  const token = await criarToken({ email: usuario.email, perfil: usuario.perfil });
-  const res = NextResponse.json({ ok: true, perfil: usuario.perfil });
+  const token = await criarToken({ email: usuario.email, nome: usuario.nome });
+  const res = NextResponse.json({ ok: true, nome: usuario.nome });
   res.cookies.set(COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 8, // 8 horas
+    maxAge: 60 * 60 * 24 * 30, // 30 dias
   });
   return res;
 }

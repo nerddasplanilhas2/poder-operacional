@@ -1,12 +1,13 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Doughnut, Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend,
 } from 'chart.js';
 import {
-  Shield, Grid, Units, Table as TableIc, Hash, Filter, Logout, Refresh, Download, Search, ICONES,
+  Shield, Grid, Units, Table as TableIc, Hash, Filter, Logout, Refresh, Download, Search, Edit, ICONES,
 } from '../components/Icons';
 import {
   GBMS, CAMPOS, CATEGORIAS, GRUPO_VIATURAS, GRUPO_EQUIP, GRUPO_EQUIP_SOMA,
@@ -42,7 +43,7 @@ function fmtData(s) {
 export default function DashboardPage() {
   const router = useRouter();
   const [estado, setEstado] = useState('carregando');
-  const [perfil, setPerfil] = useState('');
+  const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [linhas, setLinhas] = useState([]);
   const [aba, setAba] = useState('geral');
@@ -59,7 +60,7 @@ export default function DashboardPage() {
       if (r.status === 401) { router.replace('/login'); return; }
       const j = await r.json();
       if (!j.ok) { setEstado('negado'); return; }
-      setPerfil(j.perfil || '');
+      setNome(j.nome || '');
       setEmail(j.email || '');
       setLinhas(j.linhas || []);
       setDataSel(j.data || '');
@@ -194,10 +195,11 @@ export default function DashboardPage() {
         <button className={'nav-item' + (aba === 'quant' ? ' active' : '')} onClick={() => setAba('quant')}><Hash /> Quantitativo</button>
         <button className={'nav-item' + (aba === 'unidades' ? ' active' : '')} onClick={() => setAba('unidades')}><Units /> Unidades</button>
         <button className={'nav-item' + (aba === 'detalhe' ? ' active' : '')} onClick={() => setAba('detalhe')}><TableIc /> Detalhamento</button>
+        <Link className="nav-item" href="/"><Edit /> Formulário</Link>
         <div className="sb-foot">
           <div className="sb-user">
-            <div className="av">{(perfil || 'U')[0]}</div>
-            <div className="who"><b>{perfil}</b><small>{email}</small></div>
+            <div className="av">{(nome || 'U')[0]}</div>
+            <div className="who"><b>{nome || 'Usuário'}</b><small>{email}</small></div>
           </div>
           <button className="nav-item" onClick={sair}><Logout /> Sair</button>
         </div>
@@ -224,7 +226,7 @@ export default function DashboardPage() {
                 {GBMS.map((g) => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
-            <span className="pill">{perfil}</span>
+            <span className="pill">{nome || 'Usuário'}</span>
             <button className="btn btn-ghost" onClick={() => carregar(dataSel)}><Refresh /> Atualizar</button>
           </div>
         </div>

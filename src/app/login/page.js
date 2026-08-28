@@ -23,7 +23,7 @@ export default function LoginPage() {
       });
       const j = await r.json();
       if (!j.ok) { setMsg({ tipo: 'err', texto: j.msg || 'E-mail ou senha inválidos.' }); setCarregando(false); return; }
-      router.replace('/dashboard');
+      router.replace('/');
     } catch (err) {
       setMsg({ tipo: 'err', texto: 'Erro ao entrar: ' + err.message });
       setCarregando(false);
@@ -35,12 +35,12 @@ export default function LoginPage() {
       <div className="login-hero">
         <div className="lh-mark"><Shield /></div>
         <h1>PODER OPERACIONAL</h1>
-        <p>Painel de comando do Corpo de Bombeiros. Acompanhe em tempo real os recursos e
-           equipamentos de cada GBM.</p>
+        <p>Sistema do Corpo de Bombeiros. Registre os recursos do seu GBM e acompanhe o
+           panorama de toda a corporação.</p>
         <ul>
-          <li><Grid /> Indicadores e gráficos consolidados</li>
-          <li><Units /> Situação de cada unidade</li>
-          <li><Table /> Detalhamento completo e exportação</li>
+          <li><Grid /> Formulário diário por unidade</li>
+          <li><Units /> Situação de cada GBM</li>
+          <li><Table /> Painel completo com indicadores</li>
         </ul>
       </div>
 
@@ -48,9 +48,9 @@ export default function LoginPage() {
         <div className="login-card">
           <div className="card-head">
             <div className="ic"><Lock /></div>
-            <h2>Acesso restrito</h2>
+            <h2>Entrar</h2>
           </div>
-          <p className="sub">Área do Comandante e do Diretor. Informe seu e-mail e senha.</p>
+          <p className="sub">Acesse com seu e-mail e senha.</p>
           <form onSubmit={entrar}>
             <label htmlFor="email">E-mail</label>
             <input id="email" type="email" autoComplete="username" placeholder="seuemail@exemplo.com"
@@ -61,12 +61,12 @@ export default function LoginPage() {
             {msg && <div className={'msg ' + msg.tipo}>{msg.texto}</div>}
             <div className="actions">
               <button className="btn btn-navy" type="submit" disabled={carregando} style={{ width: '100%' }}>
-                {carregando ? 'Entrando...' : 'Acessar painel'}
+                {carregando ? 'Entrando...' : 'Entrar'}
               </button>
             </div>
           </form>
           <p className="sub" style={{ margin: '18px 0 0', textAlign: 'center' }}>
-            <Link href="/" style={{ color: 'var(--navy)', fontWeight: 600 }}>← Voltar ao formulário</Link>
+            Não tem acesso? <Link href="/cadastro" style={{ color: 'var(--navy)', fontWeight: 700 }}>Faça seu cadastro</Link>
           </p>
         </div>
       </div>

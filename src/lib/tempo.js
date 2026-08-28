@@ -1,4 +1,4 @@
-import { TIMEZONE, ABRE_HORA, FECHA_HORA } from './config';
+import { TIMEZONE } from './config';
 
 // Retorna a data/hora atual no fuso de Brasília (independente do servidor).
 export function agoraBR() {
@@ -14,11 +14,6 @@ export function agoraBR() {
     min: parseInt(p.minute, 10),
     horaStr: `${p.hour}:${p.minute}`,
   };
-}
-
-// O envio está aberto? (entre ABRE_HORA e FECHA_HORA)
-export function janelaAberta(t = agoraBR()) {
-  return t.hora >= ABRE_HORA && t.hora < FECHA_HORA;
 }
 
 // Formata YYYY-MM-DD para DD/MM/AAAA.

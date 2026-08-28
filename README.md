@@ -1,100 +1,82 @@
 # PODER OPERACIONAL — GBM (Next.js + Vercel + Upstash Redis)
 
-Sistema web para os GBMs preencherem seus dados operacionais e para o Comandante/Diretor
-acompanharem tudo num painel. **Sem Supabase**: os dados ficam no Upstash Redis (integrado
-ao Vercel) e o login é feito com e-mail e senha guardados nas variáveis de ambiente.
+Sistema do Corpo de Bombeiros para registrar, por GBM, os recursos e equipamentos, e
+acompanhar o panorama da corporação num painel.
 
-- **Formulário** (`/`): aberto — a pessoa coloca o nome, escolhe o GBM e preenche os campos.
-- **Login** (`/login`): restrito ao Comandante e ao Diretor.
-- **Painel** (`/dashboard`): KPIs, gráficos, status por unidade, tabela filtrável e exportação em PDF.
+**Como funciona o acesso (novo):**
+- Tudo fica atrás de login. Quem não tem conta clica em **Faça seu cadastro** e cria o acesso.
+- Não há cargos: **todo usuário cadastrado vê tudo** — preenche o formulário e vê o painel.
+- O formulário é diário (cada dia é guardado separado). Não há restrição de horário.
 
-Não há nenhum banco para configurar à mão nem SQL para rodar: os registros são criados
-sozinhos no primeiro envio do formulário.
+Páginas: `/login`, `/cadastro`, `/` (formulário) e `/dashboard` (painel).
 
 ---
 
-## Passo a passo (tudo pelo site do Vercel)
+## Publicar no Vercel
 
 ### 1) Subir o projeto para o GitHub
-Crie um repositório no GitHub e envie estes arquivos (pode arrastá-los pelo site do GitHub).
+Crie um repositório e envie estes arquivos (a pasta `src` e os arquivos da raiz).
 
 ### 2) Importar no Vercel
-Em https://vercel.com → **Add New… → Project** → importe o repositório.
-Ainda **não** clique em Deploy — antes configure o banco e as variáveis (passos 3 e 4).
+vercel.com → **Add New… → Project** → importe o repositório.
 
 ### 3) Criar o banco (Upstash Redis) — 2 cliques
-No projeto, abra a aba **Storage** → **Create Database** → escolha **Upstash for Redis**
-→ **Continue** e conecte. O Vercel cria o banco e adiciona sozinho as variáveis
-`UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN` ao projeto.
+Aba **Storage** → **Create Database** → **Upstash for Redis** → conecte ao projeto.
+As variáveis do banco entram sozinhas.
 
-### 4) Cadastrar o login e o segredo
+### 4) Definir o segredo da sessão
 Em **Settings → Environment Variables**, adicione:
 
 | Nome | Valor |
 |------|-------|
-| `COMANDANTE_EMAIL` | e-mail do Comandante |
-| `COMANDANTE_SENHA` | senha do Comandante |
-| `DIRETOR_EMAIL` | e-mail do Diretor |
-| `DIRETOR_SENHA` | senha do Diretor |
-| `AUTH_SECRET` | um texto aleatório longo (veja abaixo) |
+| `AUTH_SECRET` | um texto aleatório longo (ex.: `openssl rand -base64 32`) |
 
-Para gerar o `AUTH_SECRET`, rode no terminal `openssl rand -base64 32` **ou** use qualquer
-sequência longa e aleatória de letras e números.
+> As variáveis antigas `COMANDANTE_*` e `DIRETOR_*` não são mais usadas — pode removê-las.
 
 ### 5) Publicar
-Clique em **Deploy**. Ao final, o Vercel te dá o link do site. Pronto.
-
-> Se você conectou o banco depois de já ter feito o primeiro deploy, faça um
-> **Redeploy** (aba Deployments → menu … → Redeploy) para o app enxergar as variáveis.
+Clique em **Deploy**. Se você já tinha publicado antes, faça um **Redeploy** após conectar o
+banco e definir o `AUTH_SECRET`.
 
 ---
 
-## Rodar no seu computador (opcional, para testar)
+## Rodar no seu computador (opcional)
 
 ```bash
 npm install
-cp .env.local.example .env.local   # e preencha as variaveis
+cp .env.local.example .env.local   # preencha UPSTASH_* e AUTH_SECRET
 npm run dev
-# abra http://localhost:3000
+# http://localhost:3000
 ```
-Para testar localmente você precisa de um banco Upstash (crie grátis em https://upstash.com
-e copie a REST URL e o REST TOKEN para o `.env.local`).
 
 ---
 
-## Como usar
+## Uso
 
-- **GBMs:** entram no link, colocam o nome, escolhem o GBM e preenchem. Ao salvar, os dados
-  são gravados/atualizados (um registro por GBM). Se já houver dados, o formulário vem
-  pré-preenchido.
-- **Comandante/Diretor:** clicam em **Entrar**, fazem login com e-mail e senha e veem o painel.
+1. A primeira pessoa acessa o site, é levada ao **login** e clica em **Faça seu cadastro**.
+2. Cria a conta (nome, e-mail, senha) e já entra.
+3. No **formulário**, escolhe o GBM e preenche os dados do dia (é salvo com o nome da conta).
+4. No **painel** (botão *Painel*), vê indicadores, gráficos, situação por unidade, quantitativo
+   e o detalhamento — com seletor de **dia** e filtro por **unidade**.
 
-## Trocar quem acessa o painel ou as senhas
-Basta editar as variáveis `COMANDANTE_*` / `DIRETOR_*` em **Settings → Environment Variables**
-no Vercel e fazer um **Redeploy**. (Quer um terceiro acesso? Me avise que eu adiciono.)
+## Segurança / observações
+- As senhas são guardadas com **hash + salt** (não ficam em texto puro).
+- A sessão é um cookie assinado que dura 30 dias.
+- **O cadastro é aberto:** qualquer pessoa com o link pode criar conta e ver os dados.
+  Se quiser restringir (ex.: código de convite ou apenas e-mails de um domínio), dá para
+  adicionar — é só pedir.
 
-## Estrutura do projeto
+## Estrutura
 
 ```
-poder-operacional/
-├─ src/lib/config.js            → lista de GBMs e campos
-├─ src/lib/redis.js             → conexao com o Upstash Redis
-├─ src/lib/auth.js              → login e sessao (JWT em cookie)
-├─ src/middleware.js            → protege o /dashboard
-├─ src/app/page.js              → formulario publico
-├─ src/app/login/page.js        → login
-├─ src/app/dashboard/page.js    → painel protegido
-└─ src/app/api/
-   ├─ submit/route.js           → grava e le os dados do formulario
-   ├─ login/route.js            → valida e cria a sessao
-   ├─ logout/route.js           → encerra a sessao
-   └─ dados/route.js            → entrega os dados ao painel (exige sessao)
+src/lib/config.js        → GBMs, campos e categorias
+src/lib/redis.js         → conexão Upstash (dados por dia)
+src/lib/usuarios.js      → cadastro/validação de usuários (hash de senha)
+src/lib/auth.js          → sessão (JWT em cookie)
+src/lib/tempo.js         → data do dia (fuso de Brasília)
+src/middleware.js        → protege / e /dashboard
+src/app/page.js          → formulário (logado)
+src/app/login/page.js    → login
+src/app/cadastro/page.js → criar conta
+src/app/dashboard/page.js→ painel
+src/app/api/…            → login, cadastro, logout, me, submit, dados, status
 ```
-
-## Segurança (resumo)
-
-- O login confere e-mail e senha contra as variáveis de ambiente (que nunca aparecem no
-  navegador) e cria um cookie de sessão assinado, que expira em 8 horas.
-- O `/dashboard` e a rota `/api/dados` só respondem com uma sessão válida.
-- As senhas e o `AUTH_SECRET` ficam apenas nas variáveis do Vercel — nunca no GitHub
-  (o `.gitignore` já protege o `.env.local`).

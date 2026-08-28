@@ -31,5 +31,5 @@ export async function GET(request) {
     };
   });
 
-  return NextResponse.json({ ok: true, perfil: sessao.perfil, email: sessao.email, data, hoje: agoraBR().data, linhas });
+  return NextResponse.json({ ok: true, nome: sessao.nome, email: sessao.email, data, hoje: agoraBR().data, linhas });
 }
