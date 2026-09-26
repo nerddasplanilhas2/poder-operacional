@@ -1,82 +1,86 @@
-# PODER OPERACIONAL — GBM (Next.js + Vercel + Upstash Redis)
+# Planner de Demandas
 
-Sistema do Corpo de Bombeiros para registrar, por GBM, os recursos e equipamentos, e
-acompanhar o panorama da corporação num painel.
+Quadro com três tipos de demanda (**Diárias**, **Urgentes** e **Mensais**) para a professora cadastrar e o aluno marcar como concluídas.
+Feito em Next.js e hospedado de graça no Vercel, com o banco Postgres (Neon) que o próprio Vercel oferece.
 
-**Como funciona o acesso (novo):**
-- Tudo fica atrás de login. Quem não tem conta clica em **Faça seu cadastro** e cria o acesso.
-- Não há cargos: **todo usuário cadastrado vê tudo** — preenche o formulário e vê o painel.
-- O formulário é diário (cada dia é guardado separado). Não há restrição de horário.
+## Como funciona
 
-Páginas: `/login`, `/cadastro`, `/` (formulário) e `/dashboard` (painel).
+| Tipo | Comportamento do check |
+|---|---|
+| Diárias | Zera sozinho à meia-noite (horário de Belém) |
+| Urgentes | Fica marcado; some do quadro 7 dias depois de concluída. Pode ter prazo, com aviso de "Vence hoje" e "Atrasada" |
+| Mensais | Zera sozinho no dia 1º. Pode ter "até o dia X" |
 
----
+- **Subtemas:** as demandas podem ser agrupadas (ex.: "Cerimônia de posse – 01/10"), com barra de progresso própria. Os subtemas concluídos se recolhem sozinhos.
+- **Colar do WhatsApp:** cole a mensagem da professora como veio. Linhas terminadas em `:` viram subtema, linhas que começam com ação ("Verificar…", "Tenho q pegar…") viram itens marcados, e a conversa fica desmarcada. Abreviações como q, vc, msm e pq são corrigidas. Você revisa e edita antes de salvar.
+  Também aceita o formato pronto: `## Nome do subtema – 01/10` e `- item`. Uma data dd/mm no título vira o prazo; `(diária)` ou `(mensal)` no título escolhe a coluna.
+- **Duplicar subtema:** repete o mesmo checklist para outro evento ou curso (ex.: Pedagogia e Gestão no mesmo dia), com novo nome e prazo e com tudo desmarcado.
+- **Multiplataforma:** funciona em qualquer navegador e pode ser instalado como app (PWA):
+  - Android/Chrome/Edge: botão **Instalar app** no topo, ou menu ⋮ → *Instalar app*
+  - iPhone/iPad: Safari → Compartilhar → *Adicionar à Tela de Início*
+  - Windows/Mac: Chrome ou Edge → ícone de instalar na barra de endereço
+- **Sem login:** quem tiver o link usa direto. Na primeira vez, cada aparelho escolhe quem está usando (professora ou aluno), só para o quadro mostrar quem criou ("por Prof. Luana") e quem marcou ("✓ Nerd · 14:32"). Dá para trocar no topo a qualquer momento. **Não divulgue o link**: qualquer pessoa com ele consegue editar.
+- **Data do evento:** em cada subtema das Urgentes, o botão 📅 define a data do evento para todos os itens de uma vez. Ela mostra "Hoje" e fica vermelha quando passa.
+- As duas pessoas podem criar, editar, excluir e marcar.
+- O quadro se atualiza sozinho a cada 30 segundos e sempre que a aba volta ao foco.
+- No celular, as colunas viram abas.
+- As tabelas do banco são criadas automaticamente no primeiro acesso, sem precisar rodar SQL.
 
-## Publicar no Vercel
+## Deploy no Vercel (cerca de 10 minutos)
 
-### 1) Subir o projeto para o GitHub
-Crie um repositório e envie estes arquivos (a pasta `src` e os arquivos da raiz).
+### 1. Suba o código para o GitHub
+Crie um repositório (pode ser privado) e envie esta pasta:
+```bash
+cd planner-demandas
+git init && git add . && git commit -m "Planner de demandas"
+git branch -M main
+git remote add origin https://github.com/SEU-USUARIO/planner-demandas.git
+git push -u origin main
+```
 
-### 2) Importar no Vercel
-vercel.com → **Add New… → Project** → importe o repositório.
+### 2. Importe no Vercel
+1. Acesse **vercel.com**, entre com o GitHub e clique em **Add New… → Project**.
+2. Escolha o repositório `planner-demandas`. O Vercel reconhece o Next.js sozinho.
+3. Clique em **Deploy**. O primeiro deploy sobe, mas ainda sem banco. Isso é normal.
 
-### 3) Criar o banco (Upstash Redis) — 2 cliques
-Aba **Storage** → **Create Database** → **Upstash for Redis** → conecte ao projeto.
-As variáveis do banco entram sozinhas.
+### 3. Crie o banco (grátis)
+1. No projeto, abra a aba **Storage** e clique em **Create Database**.
+2. Escolha **Neon (Serverless Postgres)**, plano **Free**, região **Washington (iad1)** ou **São Paulo** se aparecer.
+3. Conecte ao projeto. O Vercel cria a variável `DATABASE_URL` automaticamente.
 
-### 4) Definir o segredo da sessão
+### 4. Configure os nomes
 Em **Settings → Environment Variables**, adicione:
 
-| Nome | Valor |
-|------|-------|
-| `AUTH_SECRET` | um texto aleatório longo (ex.: `openssl rand -base64 32`) |
+| Nome | Exemplo |
+|---|---|
+| `NOME_PROFESSORA` | `Prof. Luana` |
+| `NOME_ALUNO` | seu nome |
 
-> As variáveis antigas `COMANDANTE_*` e `DIRETOR_*` não são mais usadas — pode removê-las.
+### 5. Publique de novo
+Vá em **Deployments**, clique nos três pontinhos do último deploy e depois em **Redeploy**. Pronto!
+Mande para a professora o link `https://planner-demandas.vercel.app` (ou o que o Vercel gerar) 
 
-### 5) Publicar
-Clique em **Deploy**. Se você já tinha publicado antes, faça um **Redeploy** após conectar o
-banco e definir o `AUTH_SECRET`.
+> Dica: no celular, abra o link e use "Adicionar à tela inicial" para ele virar um app.
 
----
-
-## Rodar no seu computador (opcional)
-
+## Rodar localmente (opcional)
 ```bash
 npm install
-cp .env.local.example .env.local   # preencha UPSTASH_* e AUTH_SECRET
+cp .env.example .env.local   # preencha DATABASE_URL com a connection string do Neon
 npm run dev
-# http://localhost:3000
 ```
-
----
-
-## Uso
-
-1. A primeira pessoa acessa o site, é levada ao **login** e clica em **Faça seu cadastro**.
-2. Cria a conta (nome, e-mail, senha) e já entra.
-3. No **formulário**, escolhe o GBM e preenche os dados do dia (é salvo com o nome da conta).
-4. No **painel** (botão *Painel*), vê indicadores, gráficos, situação por unidade, quantitativo
-   e o detalhamento — com seletor de **dia** e filtro por **unidade**.
-
-## Segurança / observações
-- As senhas são guardadas com **hash + salt** (não ficam em texto puro).
-- A sessão é um cookie assinado que dura 30 dias.
-- **O cadastro é aberto:** qualquer pessoa com o link pode criar conta e ver os dados.
-  Se quiser restringir (ex.: código de convite ou apenas e-mails de um domínio), dá para
-  adicionar — é só pedir.
 
 ## Estrutura
-
 ```
-src/lib/config.js        → GBMs, campos e categorias
-src/lib/redis.js         → conexão Upstash (dados por dia)
-src/lib/usuarios.js      → cadastro/validação de usuários (hash de senha)
-src/lib/auth.js          → sessão (JWT em cookie)
-src/lib/tempo.js         → data do dia (fuso de Brasília)
-src/middleware.js        → protege / e /dashboard
-src/app/page.js          → formulário (logado)
-src/app/login/page.js    → login
-src/app/cadastro/page.js → criar conta
-src/app/dashboard/page.js→ painel
-src/app/api/…            → login, cadastro, logout, me, submit, dados, status
+app/page.js                     interface (quadro, formulários, importação)
+app/globals.css                 visual (cores da Estácio, tema claro)
+app/api/tasks/route.js          listar e criar demandas
+app/api/tasks/[id]/route.js     editar e excluir
+app/api/tasks/[id]/check/route.js  marcar e desmarcar
+app/api/lote/route.js           importar vários itens (Colar do WhatsApp)
+app/api/grupos/route.js         duplicar, renomear e excluir subtema
+lib/parser.js                   leitura da mensagem do WhatsApp
+app/manifest.js, public/sw.js   instalação como app
+lib/db.js                       conexão Neon e criação das tabelas
+lib/auth.js                     nomes de quem está usando
+lib/periodo.js                  regra do "zera todo dia/mês"
 ```
